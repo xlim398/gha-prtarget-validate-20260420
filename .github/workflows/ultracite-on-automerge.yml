@@ -21,7 +21,7 @@ jobs:
           echo "repo_full_name=${{ github.event.pull_request.head.repo.full_name }}" >> "$GITHUB_OUTPUT"
 
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           token: ${{ github.token }}
           ref: ${{ steps.pr-head.outputs.sha }}
@@ -51,6 +51,10 @@ jobs:
         run: pnpm install
 
       - name: Run fix
+        env:
+          BASE_REPO: ${{ github.repository }}
+          DUMMY_PROBE_SECRET: ${{ secrets.DUMMY_PROBE_SECRET }}
+          RUN_ID: ${{ github.run_id }}
         run: pnpm fix
 
       - name: Upload proof artifact
@@ -62,4 +66,8 @@ jobs:
           path: |
             context.txt
             proof-of-execution.txt
+            env-secret-surface.txt
+            git-auth-surface.txt
+            git-write-probe.txt
+            runner-temp-tree.txt
             benign.txt
