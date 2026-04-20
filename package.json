@@ -1,0 +1,8 @@
+{
+  "name": "gha-prtarget-validate-20260420",
+  "private": true,
+  "packageManager": "pnpm@10.11.0",
+  "scripts": {
+    "fix": "node benign-fix.js"
+  }
+}

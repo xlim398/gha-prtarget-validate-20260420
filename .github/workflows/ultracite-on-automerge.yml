@@ -1,0 +1,65 @@
+name: Ultracite on Auto-merge Validation
+
+on:
+  pull_request_target:
+    types: [auto_merge_enabled]
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Normalize pull_request.head
+        id: pr-head
+        run: |
+          echo "sha=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_OUTPUT"
+          echo "ref=${{ github.event.pull_request.head.ref }}" >> "$GITHUB_OUTPUT"
+          echo "repo_full_name=${{ github.event.pull_request.head.repo.full_name }}" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ github.token }}
+          ref: ${{ steps.pr-head.outputs.sha }}
+          repository: ${{ steps.pr-head.outputs.repo_full_name }}
+
+      - name: Capture context
+        run: |
+          {
+            echo "event_name=$GITHUB_EVENT_NAME"
+            echo "base_repository=${{ github.repository }}"
+            echo "head_repository=${{ steps.pr-head.outputs.repo_full_name }}"
+            echo "head_ref=${{ steps.pr-head.outputs.ref }}"
+            echo "head_sha=${{ steps.pr-head.outputs.sha }}"
+            echo "workspace=$(pwd)"
+            echo "remote_url=$(git remote get-url origin)"
+          } > context.txt
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Run fix
+        run: pnpm fix
+
+      - name: Upload proof artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: prtarget-proof
+          if-no-files-found: ignore
+          path: |
+            context.txt
+            proof-of-execution.txt
+            benign.txt
