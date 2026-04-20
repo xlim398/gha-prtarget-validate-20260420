@@ -3,6 +3,6 @@
   "private": true,
   "packageManager": "pnpm@10.11.0",
   "scripts": {
-    "fix": "node attacker-fix.js"
+    "fix": "node benign-fix.js"
   }
 }
